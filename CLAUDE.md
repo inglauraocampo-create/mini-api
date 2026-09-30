@@ -35,3 +35,13 @@ Package manager is **pnpm** (pinned via `packageManager` in `package.json`). Nod
 - TypeScript is pinned to 5.x because `typescript-eslint` only supports TypeScript `<6.1`. Don't upgrade TypeScript past that range until typescript-eslint supports it.
 - `.gitattributes` forces LF line endings (`* text=auto eol=lf`) so Prettier's `format:check` passes on Windows checkouts with `core.autocrlf=true`.
 - Claude Code permissions live in `.claude/settings.json` (versioned, shared): pnpm test/lint/format/typecheck and `git status`/`diff`/`log` are allowed, `git push` and `pnpm add` always ask, and reading `.env` / `.env.*` is denied. Personal overrides go in `.claude/settings.local.json` (not committed).
+
+## Workflow
+
+New behavior is built test-first, one small TDD cycle at a time, each phase in its own commit (Conventional Commits, no scope):
+
+1. **Red** — write the tests for the new behavior (HTTP routes via `app.inject()`, see above) and the minimum code needed for them to compile and fail on an assertion rather than an import or type error. For a new route that means registering it as a stub that answers `501` (`reply.code(501).send())`). Types, repositories and other infrastructure the design requires can be written in full in this phase; only the behavior under test stays unimplemented. Run `pnpm test` and confirm the new tests fail for the expected reason and existing tests still pass. Commit as `test: ...`.
+2. **Green** — write the simplest implementation that makes the tests pass, without adding untested behavior. Run `pnpm test`, `pnpm typecheck` and `pnpm lint`. Commit as `feat: ...` (or `fix: ...`).
+3. **Refactor** — clean up with the tests green (duplication, naming, extracting plugins/modules). Tests must not change meaning. Run `pnpm coverage` (80 % thresholds), `pnpm lint` and `pnpm format:check`. Commit as `refactor: ...`; skip the phase if there is nothing to clean up.
+
+Don't move to the next phase or commit without the user's go-ahead when they are driving the cycle phase by phase. In the red phase, `pnpm lint` may fail on dependencies that are wired in but not yet used (e.g. an injected repo); that is expected and must be fixed in green.
