@@ -14,7 +14,7 @@ export function buildApp({
 
   app.get('/health', async () => ({ status: 'ok' }));
 
-  app.get('/preguntas', async (_request, reply) => reply.code(501).send());
+  app.get('/preguntas', async () => repo.list());
 
   return app;
 }
