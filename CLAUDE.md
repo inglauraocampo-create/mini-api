@@ -1,0 +1,34 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Commands
+
+Package manager is **pnpm** (pinned via `packageManager` in `package.json`). Node ≥20.
+
+- `pnpm install` — install dependencies
+- `pnpm build` — compile `src/` to `dist/` with `tsc`
+- `pnpm typecheck` — `tsc --noEmit`
+- `pnpm test` — run all tests once with Vitest (`pnpm test:watch` for watch mode)
+- Single test file: `pnpm test src/index.test.ts`
+- Single test by name: `pnpm vitest run -t "<test name>"` or `pnpm test -- -t "<test name>"`. Through the `test` script the `--` is required, or pnpm drops the `-t` flag silently.
+- `/test [filter]` — Claude Code skill (`.claude/skills/test/`) that runs the tests and diagnoses failures without editing code
+- `/diff-review [focus]` — read-only review of the local diff with a fixed severity table (named to avoid the built-in `/review` and `/code-review`)
+- `/changelog [version]` — updates `CHANGELOG.md` (Keep a Changelog) from commits since the last tag, grouped by Conventional Commit type. User-invoked only (`disable-model-invocation: true`); never creates tags or commits
+- `/start-task <description>` — syncs `master`, creates a `<type>/<description>` branch after confirmation, and starts the task plan-first. Commits use Conventional Commits without scope (not a monorepo). User-invoked only
+- `pnpm coverage` — tests with v8 coverage; reports (text, HTML at `coverage/index.html`, `coverage/lcov.info`) go to `coverage/`
+- `pnpm lint` / `pnpm lint:fix` — ESLint over the whole repo (`dist/` and `coverage/` ignored)
+- `pnpm format` / `pnpm format:check` — Prettier over the whole repo (respects `.gitignore` and `.prettierignore`)
+
+## Setup notes
+
+- ESM project (`"type": "module"`) compiled with `module`/`moduleResolution: NodeNext`: relative imports in `.ts` files must use the `.js` extension (e.g. `import { sum } from './index.js'`).
+- TypeScript runs in `strict` mode. There is a single `tsconfig.json`, which excludes `src/**/*.test.ts` so tests aren't emitted to `dist/`. As a result, `pnpm typecheck` does **not** type-check test files, and Vitest runs them without type-checking.
+- Tests live next to their source as `src/**/*.test.ts`, configured in `vitest.config.ts` (Node environment). Coverage uses `@vitest/coverage-v8` over `src/**/*.ts` (tests excluded), so untested source files show up at 0%. The terminal `text` report hides files that are 100% covered. There are no coverage thresholds yet.
+- Vitest is pinned to `^4` because Vitest 5 requires Node ≥22.12. `@vitest/coverage-v8` must stay on the exact same version as `vitest` (peer dependency), so upgrade them together.
+- `vitest.config.ts` and `eslint.config.js` sit outside `tsconfig.json`'s `include`, so `tsc` doesn't check them. ESLint and Prettier still do.
+- ESLint 9 uses a flat config in `eslint.config.js` (loaded as ESM): `@eslint/js` recommended + `typescript-eslint` recommended, with Node globals. Linting is **not** type-aware, because test files sit outside `tsconfig.json`, so `projectService` would reject them.
+- Prettier owns formatting and ESLint only checks code quality. `eslint-config-prettier/flat` must stay the **last** entry in `eslint.config.js` so it disables any conflicting ESLint style rules. Prettier config is `.prettierrc.json` (only `singleQuote: true`), and Prettier is pinned to an exact version because even minor releases can change its output.
+- TypeScript is pinned to 5.x because `typescript-eslint` only supports TypeScript `<6.1`. Don't upgrade TypeScript past that range until typescript-eslint supports it.
+- `.gitattributes` forces LF line endings (`* text=auto eol=lf`) so Prettier's `format:check` passes on Windows checkouts with `core.autocrlf=true`.
+- Claude Code permissions live in `.claude/settings.json` (versioned, shared): pnpm test/lint/format/typecheck and `git status`/`diff`/`log` are allowed, `git push` and `pnpm add` always ask, and reading `.env` / `.env.*` is denied. Personal overrides go in `.claude/settings.local.json` (not committed).
