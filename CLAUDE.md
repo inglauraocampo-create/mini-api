@@ -8,6 +8,7 @@ Package manager is **pnpm** (pinned via `packageManager` in `package.json`). Nod
 
 - `pnpm install` — install dependencies
 - `pnpm build` — compile `src/` to `dist/` with `tsc`
+- `pnpm start` — run the compiled server (`dist/server.js`); needs `pnpm build` first. Listens on `PORT` (default `3000`) and `HOST` (default `0.0.0.0`)
 - `pnpm typecheck` — `tsc --noEmit`
 - `pnpm test` — run all tests once with Vitest (`pnpm test:watch` for watch mode)
 - Single test file: `pnpm test src/index.test.ts`
@@ -24,7 +25,9 @@ Package manager is **pnpm** (pinned via `packageManager` in `package.json`). Nod
 
 - ESM project (`"type": "module"`) compiled with `module`/`moduleResolution: NodeNext`: relative imports in `.ts` files must use the `.js` extension (e.g. `import { sum } from './index.js'`).
 - TypeScript runs in `strict` mode. There is a single `tsconfig.json`, which excludes `src/**/*.test.ts` so tests aren't emitted to `dist/`. As a result, `pnpm typecheck` does **not** type-check test files, and Vitest runs them without type-checking.
-- Tests live next to their source as `src/**/*.test.ts`, configured in `vitest.config.ts` (Node environment). Coverage uses `@vitest/coverage-v8` over `src/**/*.ts` (tests excluded), so untested source files show up at 0%. The terminal `text` report hides files that are 100% covered. There are no coverage thresholds yet.
+- Tests live next to their source as `src/**/*.test.ts`, configured in `vitest.config.ts` (Node environment). Coverage uses `@vitest/coverage-v8` over `src/**/*.ts` (tests excluded), so untested source files show up at 0%. The terminal `text` report hides files that are 100% covered. Coverage thresholds are 80 % for lines, functions, branches and statements; `pnpm coverage` fails below that (plain `pnpm test` doesn't collect coverage, so it doesn't enforce them). `src/server.ts` is excluded from coverage.
+- The HTTP API uses Fastify 5. `src/app.ts` exports `buildApp(options?)`, a factory that creates the Fastify instance and registers routes/plugins but never calls `listen()`. `src/server.ts` is the only entry point that listens; keep it logic-free, since it isn't tested or covered. New routes go in `buildApp()` (or plugins it registers).
+- Test HTTP routes with `app.inject()` on a fresh `buildApp()` per test, not with a real port or supertest: `inject()` runs requests in-process with no network, and `await app.close()` in `afterEach` releases hooks/plugins. See `src/app.test.ts`.
 - Vitest is pinned to `^4` because Vitest 5 requires Node ≥22.12. `@vitest/coverage-v8` must stay on the exact same version as `vitest` (peer dependency), so upgrade them together.
 - `vitest.config.ts` and `eslint.config.js` sit outside `tsconfig.json`'s `include`, so `tsc` doesn't check them. ESLint and Prettier still do.
 - ESLint 9 uses a flat config in `eslint.config.js` (loaded as ESM): `@eslint/js` recommended + `typescript-eslint` recommended, with Node globals. Linting is **not** type-aware, because test files sit outside `tsconfig.json`, so `projectService` would reject them.

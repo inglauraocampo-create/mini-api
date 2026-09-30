@@ -7,9 +7,16 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.test.ts'],
+      // server.ts only wires buildApp() to listen(); it has no testable logic.
+      exclude: ['src/**/*.test.ts', 'src/server.ts'],
       reporter: ['text', 'html', 'lcov'],
       reportsDirectory: 'coverage',
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 80,
+        statements: 80,
+      },
     },
   },
 });
