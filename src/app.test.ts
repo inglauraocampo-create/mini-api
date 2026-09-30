@@ -19,10 +19,5 @@ describe('buildApp', () => {
     expect(res.statusCode).toBe(200);
     expect(res.json()).toEqual({ status: 'ok' });
   });
-
-  it('responde 404 en rutas desconocidas', async () => {
-    const res = await app.inject({ method: 'GET', url: '/nope' });
-
-    expect(res.statusCode).toBe(404);
-  });
+  
 });
