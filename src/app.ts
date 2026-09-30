@@ -6,7 +6,7 @@ import Fastify, {
 export function buildApp(options: FastifyServerOptions = {}): FastifyInstance {
   const app = Fastify(options);
 
-    app.get('/health', async (_request, reply) => reply.code(501).send());
+  app.get('/health', async () => ({ status: 'ok' }));
 
   return app;
 }

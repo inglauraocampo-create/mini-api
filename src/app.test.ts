@@ -19,5 +19,4 @@ describe('buildApp', () => {
     expect(res.statusCode).toBe(200);
     expect(res.json()).toEqual({ status: 'ok' });
   });
-  
 });
