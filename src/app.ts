@@ -2,11 +2,19 @@ import Fastify, {
   type FastifyInstance,
   type FastifyServerOptions,
 } from 'fastify';
+import { createInMemoryRepo, type PreguntasRepo } from './preguntas/repo.js';
 
-export function buildApp(options: FastifyServerOptions = {}): FastifyInstance {
-  const app = Fastify(options);
+export type BuildAppOptions = FastifyServerOptions & { repo?: PreguntasRepo };
+
+export function buildApp({
+  repo = createInMemoryRepo(),
+  ...fastifyOptions
+}: BuildAppOptions = {}): FastifyInstance {
+  const app = Fastify(fastifyOptions);
 
   app.get('/health', async () => ({ status: 'ok' }));
+
+  app.get('/preguntas', async (_request, reply) => reply.code(501).send());
 
   return app;
 }
