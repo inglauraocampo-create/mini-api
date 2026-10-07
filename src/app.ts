@@ -3,6 +3,7 @@ import Fastify, {
   type FastifyServerOptions,
 } from 'fastify';
 import { createInMemoryRepo, type PreguntasRepo } from './preguntas/repo.js';
+import { preguntasRoutes } from './preguntas/routes.js';
 
 export type BuildAppOptions = FastifyServerOptions & { repo?: PreguntasRepo };
 
@@ -14,7 +15,7 @@ export function buildApp({
 
   app.get('/health', async () => ({ status: 'ok' }));
 
-  app.get('/preguntas', async () => repo.list());
+  app.register(preguntasRoutes, { repo });
 
   return app;
 }
