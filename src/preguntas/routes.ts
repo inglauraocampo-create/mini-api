@@ -7,4 +7,6 @@ export const preguntasRoutes: FastifyPluginAsync<
   PreguntasRoutesOptions
 > = async (app, { repo }) => {
   app.get('/preguntas', async () => repo.list());
+
+  app.post('/preguntas', async (_request, reply) => reply.code(501).send());
 };

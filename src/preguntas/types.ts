@@ -5,3 +5,5 @@ export type Pregunta = {
   respuestaCorrecta: number; // índice dentro de opciones
   dificultad: 'facil' | 'media' | 'dificil';
 };
+
+export type NuevaPregunta = Omit<Pregunta, 'id'>;
