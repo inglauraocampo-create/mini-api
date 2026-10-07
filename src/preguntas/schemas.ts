@@ -1,5 +1,6 @@
 export const nuevaPreguntaSchema = {
   type: 'object',
+  additionalProperties: false,
   required: ['enunciado', 'opciones', 'respuestaCorrecta', 'dificultad'],
   properties: {
     enunciado: { type: 'string', minLength: 1 },

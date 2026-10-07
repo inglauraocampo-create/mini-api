@@ -17,7 +17,11 @@ export const preguntasRoutes: FastifyPluginAsync<
       const nueva = request.body;
 
       if (nueva.respuestaCorrecta >= nueva.opciones.length) {
-        return reply.code(400).send();
+        return reply.code(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'respuestaCorrecta debe ser menor que opciones.length',
+        });
       }
 
       return reply.code(201).send(repo.create(nueva));

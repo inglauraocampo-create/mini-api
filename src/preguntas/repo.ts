@@ -12,7 +12,7 @@ export function createInMemoryRepo(seed: Pregunta[] = []): PreguntasRepo {
   return {
     list: () => [...preguntas],
     create: (input) => {
-      const pregunta = { id: randomUUID(), ...input };
+      const pregunta = { ...input, id: randomUUID() };
       preguntas.push(pregunta);
       return pregunta;
     },
