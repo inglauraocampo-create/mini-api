@@ -34,6 +34,7 @@ Package manager is **pnpm** (pinned via `packageManager` in `package.json`). Nod
 - Prettier owns formatting and ESLint only checks code quality. `eslint-config-prettier/flat` must stay the **last** entry in `eslint.config.js` so it disables any conflicting ESLint style rules. Prettier config is `.prettierrc.json` (only `singleQuote: true`), and Prettier is pinned to an exact version because even minor releases can change its output.
 - TypeScript is pinned to 5.x because `typescript-eslint` only supports TypeScript `<6.1`. Don't upgrade TypeScript past that range until typescript-eslint supports it.
 - `.gitattributes` forces LF line endings (`* text=auto eol=lf`) so Prettier's `format:check` passes on Windows checkouts with `core.autocrlf=true`.
+- CI (`.github/workflows/ci.yml`) runs on pushes to `master` and on every PR, on Node 20, 22 and 24: `pnpm install --frozen-lockfile`, then `typecheck`, `lint`, `format:check` and `coverage` (which runs the tests and enforces the thresholds). pnpm's version comes from `packageManager`, so bump it there, not in the workflow.
 - Claude Code permissions live in `.claude/settings.json` (versioned, shared): pnpm test/lint/format/typecheck and `git status`/`diff`/`log` are allowed, `git push` and `pnpm add` always ask, and reading `.env` / `.env.*` is denied. Personal overrides go in `.claude/settings.local.json` (not committed).
 
 ## Workflow
