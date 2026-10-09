@@ -11,7 +11,11 @@ export function buildApp({
   repo = createInMemoryRepo(),
   ...fastifyOptions
 }: BuildAppOptions = {}): FastifyInstance {
-  const app = Fastify(fastifyOptions);
+  const app = Fastify({
+    // Reject properties outside the schema instead of silently stripping them.
+    ajv: { customOptions: { removeAdditional: false } },
+    ...fastifyOptions,
+  });
 
   app.get('/health', async () => ({ status: 'ok' }));
 

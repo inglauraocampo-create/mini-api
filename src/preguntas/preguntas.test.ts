@@ -121,6 +121,8 @@ describe('POST /preguntas', () => {
       caso: 'dificultad inválida',
       payload: { ...base, dificultad: 'imposible' },
     },
+    { caso: 'id en el body', payload: { ...base, id: 'impuesto' } },
+    { caso: 'propiedad extra', payload: { ...base, extra: 'no permitida' } },
   ])('con $caso responde 400 y no crea nada', async ({ payload }) => {
     app = buildApp({ repo: createInMemoryRepo() });
 
@@ -142,23 +144,5 @@ describe('POST /preguntas', () => {
 
     const lista = await app.inject({ method: 'GET', url: '/preguntas' });
     expect(lista.json()).toEqual([]);
-  });
-
-  it('ignora las propiedades extra del body', async () => {
-    app = buildApp({ repo: createInMemoryRepo() });
-
-    const res = await app.inject({
-      method: 'POST',
-      url: '/preguntas',
-      payload: { ...base, id: 'impuesto', extra: 'no debería guardarse' },
-    });
-
-    expect(res.statusCode).toBe(201);
-    const creada = res.json();
-    expect(creada).toEqual({ id: expect.any(String), ...base });
-    expect(creada.id).not.toBe('impuesto');
-
-    const lista = await app.inject({ method: 'GET', url: '/preguntas' });
-    expect(lista.json()).toEqual([creada]);
   });
 });
