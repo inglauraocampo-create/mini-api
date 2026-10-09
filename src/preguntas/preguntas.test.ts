@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../app.js';
 import { createInMemoryRepo } from './repo.js';
@@ -21,6 +21,12 @@ const preguntas: Pregunta[] = [
   },
 ];
 
+const listar = (app: FastifyInstance) =>
+  app.inject({ method: 'GET', url: '/preguntas' });
+
+const crear = (app: FastifyInstance, payload: object) =>
+  app.inject({ method: 'POST', url: '/preguntas', payload });
+
 describe('GET /preguntas', () => {
   let app: FastifyInstance;
 
@@ -31,7 +37,7 @@ describe('GET /preguntas', () => {
   it('con repo vacío responde 200 y []', async () => {
     app = buildApp({ repo: createInMemoryRepo() });
 
-    const res = await app.inject({ method: 'GET', url: '/preguntas' });
+    const res = await listar(app);
 
     expect(res.statusCode).toBe(200);
     expect(res.json()).toEqual([]);
@@ -40,7 +46,7 @@ describe('GET /preguntas', () => {
   it('con repo sembrado responde 200 y sus preguntas', async () => {
     app = buildApp({ repo: createInMemoryRepo(preguntas) });
 
-    const res = await app.inject({ method: 'GET', url: '/preguntas' });
+    const res = await listar(app);
 
     expect(res.statusCode).toBe(200);
     expect(res.json()).toEqual(preguntas);
@@ -63,6 +69,10 @@ describe('POST /preguntas', () => {
     return copia;
   }
 
+  beforeEach(() => {
+    app = buildApp({ repo: createInMemoryRepo() });
+  });
+
   afterEach(async () => {
     await app.close();
   });
@@ -78,19 +88,13 @@ describe('POST /preguntas', () => {
       },
     },
   ])('con $caso responde 201 y la pregunta creada', async ({ payload }) => {
-    app = buildApp({ repo: createInMemoryRepo() });
-
-    const res = await app.inject({
-      method: 'POST',
-      url: '/preguntas',
-      payload,
-    });
+    const res = await crear(app, payload);
 
     expect(res.statusCode).toBe(201);
     const creada = res.json();
     expect(creada).toEqual({ id: expect.any(String), ...payload });
 
-    const lista = await app.inject({ method: 'GET', url: '/preguntas' });
+    const lista = await listar(app);
     expect(lista.json()).toEqual([creada]);
   });
 
@@ -124,13 +128,7 @@ describe('POST /preguntas', () => {
     { caso: 'id en el body', payload: { ...base, id: 'impuesto' } },
     { caso: 'propiedad extra', payload: { ...base, extra: 'no permitida' } },
   ])('con $caso responde 400 y no crea nada', async ({ payload }) => {
-    app = buildApp({ repo: createInMemoryRepo() });
-
-    const res = await app.inject({
-      method: 'POST',
-      url: '/preguntas',
-      payload,
-    });
+    const res = await crear(app, payload);
 
     expect(res.statusCode).toBe(400);
     expect(res.headers['content-type']).toEqual(
@@ -142,7 +140,7 @@ describe('POST /preguntas', () => {
       message: expect.any(String),
     });
 
-    const lista = await app.inject({ method: 'GET', url: '/preguntas' });
+    const lista = await listar(app);
     expect(lista.json()).toEqual([]);
   });
 });
