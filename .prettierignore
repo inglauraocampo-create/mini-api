@@ -1,1 +1,4 @@
 pnpm-lock.yaml
+
+# Verbatim prompt/response transcripts kept as README material
+docs/readme-material/
