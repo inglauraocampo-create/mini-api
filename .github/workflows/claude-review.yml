@@ -1,0 +1,49 @@
+name: Claude PR review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    # The comment is posted with the Claude GitHub App's token, not GITHUB_TOKEN,
+    # so read-only permissions are enough. id-token is needed to obtain it.
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Review this pull request. This is a read-only review: do not edit
+            repository files, commit, or push.
+
+            1. Read `.claude/skills/diff-review/SKILL.md`. Apply its "Checklist",
+               "Severity criteria" and "Output format" sections exactly. Ignore its
+               "Changes" section: instead of the local diff, get the changes with
+               `gh pr diff ${{ github.event.pull_request.number }}`, skipping
+               `pnpm-lock.yaml`. Read `CLAUDE.md` for project conventions.
+            2. Write the result to `/tmp/review.md` (outside the repository) and
+               post it as a single PR comment with
+               `gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/review.md`.
+               If there are no changes to review, comment `Sin cambios para revisar.`
+          claude_args: >-
+            --model sonnet
+            --max-turns 15
+            --allowedTools "Read,Grep,Glob,Write,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*)"
