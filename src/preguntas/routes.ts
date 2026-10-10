@@ -10,6 +10,11 @@ export const preguntasRoutes: FastifyPluginAsync<
 > = async (app, { repo }) => {
   app.get('/preguntas', async () => repo.list());
 
+  app.get<{ Params: { id: string } }>(
+    '/preguntas/:id',
+    async (_request, reply) => reply.code(501).send(),
+  );
+
   app.post<{ Body: NuevaPregunta }>(
     '/preguntas',
     { schema: { body: nuevaPreguntaSchema } },
