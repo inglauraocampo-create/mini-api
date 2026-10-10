@@ -32,4 +32,18 @@ describe('createInMemoryRepo', () => {
     expect(repo.getById(creada.id)).toEqual(creada);
     expect(repo.getById('no-existe')).toBeUndefined();
   });
+
+  it('delete borra la pregunta y devuelve true, o false si no existe', () => {
+    const repo = createInMemoryRepo();
+    const creada = repo.create({
+      enunciado: '¿Cuánto es 2 + 2?',
+      opciones: ['3', '4'],
+      respuestaCorrecta: 1,
+      dificultad: 'facil',
+    });
+
+    expect(repo.delete(creada.id)).toBe(true);
+    expect(repo.list()).toEqual([]);
+    expect(repo.delete(creada.id)).toBe(false);
+  });
 });
