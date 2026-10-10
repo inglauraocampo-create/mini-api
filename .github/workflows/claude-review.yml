@@ -44,4 +44,6 @@ jobs:
                `gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/review.md`.
                If there are no changes to review, comment `Sin cambios para revisar.`
           claude_args: >-
+            --model sonnet
+            --max-turns 15
             --allowedTools "Read,Grep,Glob,Write,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*)"
