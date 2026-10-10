@@ -19,4 +19,17 @@ describe('createInMemoryRepo', () => {
     expect(creada.id).not.toBe('impuesto');
     expect(repo.list()).toEqual([creada]);
   });
+
+  it('getById devuelve la pregunta con ese id o undefined si no existe', () => {
+    const repo = createInMemoryRepo();
+    const creada = repo.create({
+      enunciado: '¿Cuánto es 2 + 2?',
+      opciones: ['3', '4'],
+      respuestaCorrecta: 1,
+      dificultad: 'facil',
+    });
+
+    expect(repo.getById(creada.id)).toEqual(creada);
+    expect(repo.getById('no-existe')).toBeUndefined();
+  });
 });

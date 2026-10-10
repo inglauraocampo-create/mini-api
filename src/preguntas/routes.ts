@@ -10,6 +10,23 @@ export const preguntasRoutes: FastifyPluginAsync<
 > = async (app, { repo }) => {
   app.get('/preguntas', async () => repo.list());
 
+  app.get<{ Params: { id: string } }>(
+    '/preguntas/:id',
+    async (request, reply) => {
+      const pregunta = repo.getById(request.params.id);
+
+      if (!pregunta) {
+        return reply.code(404).send({
+          statusCode: 404,
+          error: 'Not Found',
+          message: 'Pregunta no encontrada',
+        });
+      }
+
+      return pregunta;
+    },
+  );
+
   app.post<{ Body: NuevaPregunta }>(
     '/preguntas',
     { schema: { body: nuevaPreguntaSchema } },

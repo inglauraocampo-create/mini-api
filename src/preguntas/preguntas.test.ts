@@ -27,6 +27,9 @@ const listar = (app: FastifyInstance) =>
 const crear = (app: FastifyInstance, payload: object) =>
   app.inject({ method: 'POST', url: '/preguntas', payload });
 
+const obtener = (app: FastifyInstance, id: string) =>
+  app.inject({ method: 'GET', url: `/preguntas/${id}` });
+
 describe('GET /preguntas', () => {
   let app: FastifyInstance;
 
@@ -50,6 +53,56 @@ describe('GET /preguntas', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.json()).toEqual(preguntas);
+  });
+});
+
+describe('GET /preguntas/:id', () => {
+  let app: FastifyInstance;
+
+  afterEach(async () => {
+    await app.close();
+  });
+
+  it('con un id sembrado responde 200 y esa pregunta', async () => {
+    app = buildApp({ repo: createInMemoryRepo(preguntas) });
+
+    const res = await obtener(app, 'p2');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual(preguntas[1]);
+  });
+
+  it('con el id de una pregunta creada responde 200 y esa pregunta', async () => {
+    app = buildApp({ repo: createInMemoryRepo() });
+    const creada = (
+      await crear(app, {
+        enunciado: '¿Cuál es la capital de Francia?',
+        opciones: ['París', 'Roma'],
+        respuestaCorrecta: 0,
+        dificultad: 'facil',
+      })
+    ).json();
+
+    const res = await obtener(app, creada.id);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual(creada);
+  });
+
+  it('con un id inexistente responde 404', async () => {
+    app = buildApp({ repo: createInMemoryRepo(preguntas) });
+
+    const res = await obtener(app, 'no-existe');
+
+    expect(res.statusCode).toBe(404);
+    expect(res.headers['content-type']).toEqual(
+      expect.stringMatching(/^application\/json/),
+    );
+    expect(res.json()).toMatchObject({
+      statusCode: 404,
+      error: 'Not Found',
+      message: expect.any(String),
+    });
   });
 });
 
