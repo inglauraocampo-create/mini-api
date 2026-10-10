@@ -5,9 +5,6 @@ import Fastify, {
 import { createInMemoryRepo, type PreguntasRepo } from './preguntas/repo.js';
 import { preguntasRoutes } from './preguntas/routes.js';
 
-export const DATABASE_URL =
-  'postgres://admin:SuperSecreta123!@db.mini-api.example.com:5432/preguntas';
-
 export type BuildAppOptions = FastifyServerOptions & { repo?: PreguntasRepo };
 
 export function buildApp({
