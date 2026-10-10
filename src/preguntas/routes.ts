@@ -27,6 +27,11 @@ export const preguntasRoutes: FastifyPluginAsync<
     },
   );
 
+  app.delete<{ Params: { id: string } }>(
+    '/preguntas/:id',
+    async (_request, reply) => reply.code(501).send(),
+  );
+
   app.post<{ Body: NuevaPregunta }>(
     '/preguntas',
     { schema: { body: nuevaPreguntaSchema } },

@@ -30,6 +30,9 @@ const crear = (app: FastifyInstance, payload: object) =>
 const obtener = (app: FastifyInstance, id: string) =>
   app.inject({ method: 'GET', url: `/preguntas/${id}` });
 
+const borrar = (app: FastifyInstance, id: string) =>
+  app.inject({ method: 'DELETE', url: `/preguntas/${id}` });
+
 describe('GET /preguntas', () => {
   let app: FastifyInstance;
 
@@ -103,6 +106,50 @@ describe('GET /preguntas/:id', () => {
       error: 'Not Found',
       message: expect.any(String),
     });
+  });
+});
+
+describe('DELETE /preguntas/:id', () => {
+  let app: FastifyInstance;
+
+  beforeEach(() => {
+    app = buildApp({ repo: createInMemoryRepo(preguntas) });
+  });
+
+  afterEach(async () => {
+    await app.close();
+  });
+
+  it('con un id sembrado responde 204 sin cuerpo y la pregunta deja de existir', async () => {
+    const res = await borrar(app, 'p1');
+
+    expect(res.statusCode).toBe(204);
+    expect(res.body).toBe('');
+    expect((await obtener(app, 'p1')).statusCode).toBe(404);
+    expect((await listar(app)).json()).toEqual([preguntas[1]]);
+  });
+
+  it('con un id inexistente responde 404 y no borra nada', async () => {
+    const res = await borrar(app, 'no-existe');
+
+    expect(res.statusCode).toBe(404);
+    expect(res.headers['content-type']).toEqual(
+      expect.stringMatching(/^application\/json/),
+    );
+    expect(res.json()).toMatchObject({
+      statusCode: 404,
+      error: 'Not Found',
+      message: expect.any(String),
+    });
+    expect((await listar(app)).json()).toEqual(preguntas);
+  });
+
+  it('borrar dos veces el mismo id responde 404 la segunda vez', async () => {
+    await borrar(app, 'p1');
+
+    const res = await borrar(app, 'p1');
+
+    expect(res.statusCode).toBe(404);
   });
 });
 
