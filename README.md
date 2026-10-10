@@ -30,11 +30,11 @@ Ejecuciones de la revisión que publicaron comentario:
 
 ### Hallazgos
 
-Único hallazgo hasta ahora, copiado tal cual del comentario de la revisión en el PR #6:
+Único hallazgo hasta ahora, copiado del comentario de la revisión en el PR #6. La credencial se sustituyó por un placeholder, para que el README no contenga una cadena de conexión que los escáneres de secretos detecten:
 
 | #   | Severidad | Categoría | Archivo:línea  | Problema                                                                                                                                                                                      | Sugerencia                                                                                                                                                                                                           |
 | --- | --------- | --------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | ALTA      | Secretos  | `src/app.ts:8` | Se exporta `DATABASE_URL` con una cadena de conexión Postgres que incluye usuario y contraseña (`admin:SuperSecreta123!`) en el código fuente. Además la constante no se usa en ningún sitio. | Eliminar la constante, rotar esa credencial (ya queda en el historial de git) y, si hace falta, leer la URL de `process.env.DATABASE_URL` validándola al arrancar; documentar solo un placeholder en `.env.example`. |
+| 1   | ALTA      | Secretos  | `src/app.ts:8` | Se exporta `DATABASE_URL` con una cadena de conexión Postgres que incluye usuario y contraseña (`<usuario>:<contraseña>`) en el código fuente. Además la constante no se usa en ningún sitio. | Eliminar la constante, rotar esa credencial (ya queda en el historial de git) y, si hace falta, leer la URL de `process.env.DATABASE_URL` validándola al arrancar; documentar solo un placeholder en `.env.example`. |
 
 El secreto era falso. Se añadió a propósito en `af71a2e` para comprobar que la revisión detecta credenciales en el código, y se quitó con `git revert` en `351cf31`.
 
